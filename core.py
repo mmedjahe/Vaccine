@@ -3,11 +3,9 @@ import requests
 def send(url, params, method):
     if(method == "GET"):
         gurl =  requests.get(url.geturl(), params=params)
-        print (gurl.url)
         return gurl
     else:
         purl = requests.post(url.geturl(), data=params)
-        print(purl.url)
         return purl
 
 def bsearch_req(ctx, expression, mid, i):
@@ -66,6 +64,18 @@ def extract_tables(ctx, engine):
     tables.pop(0)
     return tables
 
+def extract_bases(ctx, engine):
+    bases=[]
+    bases.append("")
+    while True:
+        seen = ",".join(f"'{t}'" for t in bases)
+        c = extract(ctx, engine["bases"].format(seen=seen))
+        if c == "":
+            break
+        bases.append(c)
+    bases.pop(0)
+    return bases
+
 def dump(ctx, table, columns, engine):
     result = {}
     for c in columns:
@@ -81,12 +91,10 @@ def dump(ctx, table, columns, engine):
 
 def dump_db(ctx, engine):
     data={}
-    tables= ["threads"]
-    print("go colonnes")
+    bases = extract_bases(ctx, engine)
+    tables= extract_tables(ctx, engine)
     columns = extract_columns(ctx, tables, engine)
-    print("colonnes done")
     for t, c in columns.items():
         data[t] = dump(ctx, t, c, engine)
-        print(t)
-        print(data[t])
-    return data
+    final_dump = {"bases": bases,"data": data}
+    return final_dump

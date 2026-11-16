@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+
 from urllib.parse import parse_qs, urlparse
-from urllib.parse import urlencode
 from urllib.parse import quote
 from inject import inject_apostrophe, inject_bool
 import argparse
