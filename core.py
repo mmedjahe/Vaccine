@@ -2,6 +2,8 @@ import requests
 
 
 def ecart(a, b):
+    if b == 0:
+        return 100 if a != 0 else 0   
     x = abs(a-b) / b * 100
     return x
     
